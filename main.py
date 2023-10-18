@@ -12,6 +12,8 @@ from questionary import Choice
 from config import ACCOUNTS, RECIPIENTS
 from utils.helpers import remove_wallet
 from utils.sleeping import sleep
+from utils.decryptor import decrypt_private_key, load_password
+from utils.helpers import get_run_accounts, update_run_accounts
 from modules_settings import *
 from settings import (
     TYPE_WALLET,
@@ -123,11 +125,13 @@ def main(module):
 
     with ThreadPoolExecutor(max_workers=QUANTITY_THREADS) as executor:
         for _, account in enumerate(wallets, start=1):
+            private_key = decrypt_private_key(account.get("key"), load_password())
+
             executor.submit(
                 _async_run_module,
                 module,
                 account.get("id"),
-                account.get("key"),
+                private_key,
                 account.get("recipient", None)
             )
             time.sleep(random.randint(THREAD_SLEEP_FROM, THREAD_SLEEP_TO))
